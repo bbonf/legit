@@ -146,10 +146,10 @@ def cmd_switch(args):
         status_log(unstash_it, 'Restoring local changes.', branch=from_branch)
 
 def cmd_resync(args):
-    """Stashes unstaged changes, 
+    """Stashes unstaged changes,
     Fetches upstream data from master branch,
-    Auto-Merge/Rebase from master branch 
-    Performs smart pull+merge, 
+    Auto-Merge/Rebase from master branch
+    Performs smart pull+merge,
     Pushes local commits up, and Unstashes changes.
     Defaults to current branch.
     """
@@ -370,8 +370,20 @@ def cmd_harvest(args):
             colored.yellow(from_branch)))
         sys.exit(1)
 
-    if is_external:
+    pull_first = get_config('harvestpullfirst', False)
+    if from_branch not in get_branch_names(local=False, remote_branches=True):
+        pull_first = False
+
+    if pull_first:
+        print("Syncing branch {0} before harvesting changes.".format(
+            colored.yellow(from_branch)))
+
+        switch_to(from_branch)
+        smart_pull()
         switch_to(to_branch)
+    else:
+        if is_external:
+            switch_to(to_branch)
 
     if repo.is_dirty():
         status_log(stash_it, 'Saving local changes.')

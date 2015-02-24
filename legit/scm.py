@@ -215,21 +215,15 @@ def get_repo():
         pass
 
 
-def get_remote():
+def get_config(key, default):
+    reader = repo.config_reader()
+    return reader.get_value('legit', key, default)
 
+def get_remote():
     repo_check(require_remote=True)
 
-    reader = repo.config_reader()
+    remote_name = get_config('remote', repo.remotes[0].name)
 
-    # If there is no legit section return the default remote.
-    if not reader.has_section('legit'):
-        return repo.remotes[0]
-
-    # If there is no remote option in the legit section return the default.
-    if not any('legit' in s and 'remote' in s for s in reader.sections()):
-        return repo.remotes[0]
-
-    remote_name = reader.get('legit', 'remote')
     if not remote_name in [r.name for r in repo.remotes]:
         raise ValueError('Remote "{0}" does not exist! Please update your git '
                          'configuration.'.format(remote_name))
